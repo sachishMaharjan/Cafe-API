@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
+import random
 
 app = Flask(__name__)
 
@@ -23,13 +24,35 @@ class Cafe(db.Model):
     can_take_calls = db.Column(db.Boolean, nullable=False)
     coffee_price = db.Column(db.String(250), nullable=True)
 
+    def to_dict(self):
+        # Method 1.
+        dictionary = {}
+        # Loop through each column in the data record
+        for column in self.__table__.columns:
+            # Create a new dictionary entry;
+            # where the key is the name of the column
+            # and the value is the value of the column
+            dictionary[column.name] = getattr(self, column.name)
+        return dictionary
+        #
+        # # Method 2. Altenatively use Dictionary Comprehension to do the same thing.
+        # return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
-    
 
-## HTTP GET - Read Record
+
+#  HTTP GET - Read Record
+@app.route("/random")
+def get_random_cafe():
+    cafes = db.session.query(Cafe).all()
+    random_cafe = random.choice(cafes)
+    #convert the random_cafe data record to a dictionary of key-value pairs.
+    return jsonify(cafe=random_cafe.to_dict())
+
+
 
 ## HTTP POST - Create Record
 
